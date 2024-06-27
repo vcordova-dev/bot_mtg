@@ -173,10 +173,10 @@ def create_summary_file():
 
         with open(summary_file_path, "w") as summary_file:
             summary_file.write(f"Resumo Diário - {datetime.now().strftime('%Y-%m-%d')}\n\n")
-            summary_file.write(log_content)
             summary_file.write(f"\nTotal Maicon: {count_option1}\n")
             summary_file.write(f"Total Guilherme: {count_option2}\n")
-            summary_file.write(f"Total: {total}\n")
+            summary_file.write(f"Total: {total}\n\n")
+            # summary_file.write(log_content)
     
     return summary_file_path
 
@@ -215,7 +215,7 @@ def job():
         send_email(summary_file_path)
 
 # Agendamento diário às 21:00
-schedule.every().day.at("13:56").do(job)
+schedule.every().day.at("14:35").do(job)
 
 def run_schedule():
     while True:
