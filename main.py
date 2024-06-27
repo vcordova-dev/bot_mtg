@@ -21,14 +21,15 @@ history = []
 
 # Função para carregar contadores do arquivo de persistência
 def load_counters():
-    global count_option1, count_option2, last_update_date
+    global count_option1, count_option2, last_update_date, total
     if os.path.exists("counters.txt"):
         with open("counters.txt", "r") as file:
             lines = file.readlines()
-            if len(lines) == 3:
+            if len(lines) == 4:
                 last_update_date = lines[0].strip()
                 count_option1 = int(lines[1].strip())
                 count_option2 = int(lines[2].strip())
+                total = int(lines[3].strip())
             else:
                 reset_counters()
     else:
@@ -40,12 +41,14 @@ def save_counters():
         file.write(f"{last_update_date}\n")
         file.write(f"{count_option1}\n")
         file.write(f"{count_option2}\n")
+        file.write(f"{total}\n")
 
 # Função para reiniciar os contadores
 def reset_counters():
-    global count_option1, count_option2, last_update_date
+    global count_option1, count_option2, last_update_date, total
     count_option1 = 0
     count_option2 = 0
+    total = 0
     last_update_date = datetime.now().strftime("%Y-%m-%d")
     save_counters()
 
@@ -64,6 +67,7 @@ def update_history_textbox():
         history_textbox.insert("end", entry + "\n")
     history_textbox.insert("end", f"Total Maicon: {count_option1}\n")
     history_textbox.insert("end", f"Total Guilherme: {count_option2}\n")
+    history_textbox.insert("end", f"Total: {total}\n")
     history_textbox.configure(state="disabled")
 
 # Função para salvar dados em um arquivo XML
@@ -92,7 +96,7 @@ def save_to_xml(selected_option, input_text):
 
 # Função para lidar com o submit
 def handle_submit():
-    global count_option1, count_option2
+    global count_option1, count_option2, total
     selected_option = option_var.get()
     input_text = input_var.get()
 
@@ -113,6 +117,8 @@ def handle_submit():
         count_option1 += 1
     elif selected_option == "Guilherme":
         count_option2 += 1
+    
+    total = count_option1 + count_option2
 
     history.append(f"MONTADOR: {selected_option}, PEDIDO: {input_text}")
     
