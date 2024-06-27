@@ -25,7 +25,7 @@ def load_counters():
     if os.path.exists("counters.txt"):
         with open("counters.txt", "r") as file:
             lines = file.readlines()
-            if len(lines) == 4:
+            if len(lines) == 3:
                 last_update_date = lines[0].strip()
                 count_option1 = int(lines[1].strip())
                 count_option2 = int(lines[2].strip())
@@ -40,7 +40,7 @@ def save_counters():
         file.write(f"{last_update_date}\n")
         file.write(f"{count_option1}\n")
         file.write(f"{count_option2}\n")
-        file.write(f"Total: {count_option1 + count_option2}\n")
+
 # Função para reiniciar os contadores
 def reset_counters():
     global count_option1, count_option2, last_update_date
@@ -55,6 +55,16 @@ def check_reset_counters():
     current_date = datetime.now().strftime("%Y-%m-%d")
     if current_date != last_update_date:
         reset_counters()
+
+# Função para atualizar o widget de histórico
+def update_history_textbox():
+    history_textbox.configure(state="normal")
+    history_textbox.delete("1.0", "end")
+    for entry in history:
+        history_textbox.insert("end", entry + "\n")
+    history_textbox.insert("end", f"Total Maicon: {count_option1}\n")
+    history_textbox.insert("end", f"Total Guilherme: {count_option2}\n")
+    history_textbox.configure(state="disabled")
 
 # Função para salvar dados em um arquivo XML
 def save_to_xml(selected_option, input_text):
@@ -111,14 +121,7 @@ def handle_submit():
         history.pop(0)
     
     # Atualiza o conteúdo do widget de texto
-    history_textbox.configure(state="normal")
-    history_textbox.delete("1.0", "end")
-    for entry in history:
-        history_textbox.insert("end", entry + "\n")
-    history_textbox.insert("end", f"Total Maicon: {count_option1}\n")
-    history_textbox.insert("end", f"Total Guilherme: {count_option2}\n")
-    history_textbox.insert("end", f"Total dia: {count_option1 + count_option2}\n")
-    history_textbox.configure(state="disabled")
+    update_history_textbox()
     
     input_var.set("")  # Limpa o campo de entrada após o submit
 
@@ -159,6 +162,7 @@ history_textbox.configure(state="disabled")
 # Carrega os contadores ao iniciar a aplicação
 load_counters()
 check_reset_counters()
+update_history_textbox()
 
 # Loop principal da aplicação
 app.mainloop()
