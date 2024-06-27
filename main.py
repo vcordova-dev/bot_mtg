@@ -2,6 +2,12 @@ import customtkinter as ctk
 import xml.etree.ElementTree as ET
 from datetime import datetime
 import os
+import schedule
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import threading
+import time
 
 # Configuração da aparência
 ctk.set_appearance_mode("dark")  # Modos: "system" (default), "dark", "light"
@@ -154,6 +160,48 @@ def handle_submit():
     # Salva os contadores no arquivo de persistência
     save_counters()
 
+def send_email(log_file_path):
+    email_user = 'vcordova@embrapolsul.com.br'
+    email_password = '996576298'
+    email_send = 'jalmeida@embrapolsul.com.br'
+    
+    subject = f"Resumo Diário - {datetime.now().strftime('%Y-%m-%d')}"
+
+    msg = MIMEMultipart()
+    msg['From'] = email_user
+    msg['To'] = email_send
+    msg['Subject'] = subject
+
+    with open(log_file_path, 'r') as f:
+        log_content = f.read()
+
+    msg.attach(MIMEText(log_content, 'plain'))
+
+    try:
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(email_user, email_password)
+            text = msg.as_string()
+            server.sendmail(email_user, email_send, text)
+            print("E-mail enviado com sucesso")
+    except Exception as e:
+        print(f"Falha ao enviar e-mail: {e}")
+
+def job():
+    log_filename = f"log_{datetime.now().strftime('%Y-%m-%d')}.txt"
+    log_file_path = os.path.join(directory, log_filename)
+    if os.path.exists(log_file_path):
+        send_email(log_file_path)
+
+# Agendamento diário às 21:00
+schedule.every().day.at("21:00").do(job)
+
+def run_schedule():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
 # Variável para armazenar a opção selecionada
 option_var = ctk.StringVar(value="Selecione um montador")
 
@@ -186,6 +234,11 @@ history_textbox.configure(state="disabled")
 load_counters()
 check_reset_counters()
 update_history_textbox()
+
+# Inicia a thread para o agendamento
+schedule_thread = threading.Thread(target=run_schedule)
+schedule_thread.daemon = True
+schedule_thread.start()
 
 # Loop principal da aplicação
 app.mainloop()
