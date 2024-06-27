@@ -12,6 +12,11 @@ app = ctk.CTk()
 app.geometry("500x500")
 app.title("SAÍDA MONTAGEM")
 
+# Definindo o diretório para salvar arquivos
+directory = r"C:\python-vsc"
+if not os.path.exists(directory):
+    os.makedirs(directory)
+
 # Função para lidar com o submit ao pressionar Enter
 def on_enter(event):
     handle_submit()
@@ -22,8 +27,9 @@ history = []
 # Função para carregar contadores do arquivo de persistência
 def load_counters():
     global count_option1, count_option2, last_update_date, total
-    if os.path.exists("counters.txt"):
-        with open("counters.txt", "r") as file:
+    counters_file_path = os.path.join(directory, "counters.txt")
+    if os.path.exists(counters_file_path):
+        with open(counters_file_path, "r") as file:
             lines = file.readlines()
             if len(lines) == 4:
                 last_update_date = lines[0].split(": ")[1].strip()
@@ -37,7 +43,8 @@ def load_counters():
 
 # Função para salvar contadores no arquivo de persistência
 def save_counters():
-    with open("counters.txt", "w") as file:
+    counters_file_path = os.path.join(directory, "counters.txt")
+    with open(counters_file_path, "w") as file:
         file.write(f"Data: {last_update_date}\n")
         file.write(f"Maicon: {count_option1}\n")
         file.write(f"Guilherme: {count_option2}\n")
@@ -92,7 +99,14 @@ def save_to_xml(selected_option, input_text):
     
     # Salvando o XML em um arquivo
     filename = f"{input_text}{datetime.now().strftime('_%H%M%S')}.xml"
-    tree.write(filename, encoding="utf-8", xml_declaration=True)
+    tree.write(os.path.join(directory, filename), encoding="utf-8", xml_declaration=True)
+
+# Função para salvar dados no arquivo de log diário
+def save_to_log(selected_option, input_text):
+    log_filename = f"log_{datetime.now().strftime('%Y-%m-%d')}.txt"
+    log_file_path = os.path.join(directory, log_filename)
+    with open(log_file_path, "a") as log_file:
+        log_file.write(f"{datetime.now().strftime('%H:%M:%S')} - MONTADOR: {selected_option}, PEDIDO: {input_text}\n")
 
 # Função para lidar com o submit
 def handle_submit():
@@ -133,6 +147,9 @@ def handle_submit():
 
     # Salva os dados em um arquivo XML
     save_to_xml(selected_option, input_text)
+
+    # Salva os dados no arquivo de log diário
+    save_to_log(selected_option, input_text)
 
     # Salva os contadores no arquivo de persistência
     save_counters()
