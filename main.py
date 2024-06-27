@@ -26,10 +26,10 @@ def load_counters():
         with open("counters.txt", "r") as file:
             lines = file.readlines()
             if len(lines) == 4:
-                last_update_date = lines[0].strip()
-                count_option1 = int(lines[1].strip())
-                count_option2 = int(lines[2].strip())
-                total = int(lines[3].strip())
+                last_update_date = lines[0].split(": ")[1].strip()
+                count_option1 = int(lines[1].split(": ")[1].strip())
+                count_option2 = int(lines[2].split(": ")[1].strip())
+                total = int(lines[3].split(": ")[1].strip())
             else:
                 reset_counters()
     else:
@@ -38,10 +38,10 @@ def load_counters():
 # Função para salvar contadores no arquivo de persistência
 def save_counters():
     with open("counters.txt", "w") as file:
-        file.write(f"{last_update_date}\n")
-        file.write(f"{count_option1}\n")
-        file.write(f"{count_option2}\n")
-        file.write(f"{total}\n")
+        file.write(f"Data: {last_update_date}\n")
+        file.write(f"Maicon: {count_option1}\n")
+        file.write(f"Guilherme: {count_option2}\n")
+        file.write(f"Total: {total}\n")
 
 # Função para reiniciar os contadores
 def reset_counters():
