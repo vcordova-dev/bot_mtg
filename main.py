@@ -19,8 +19,12 @@ app.geometry("500x500")
 app.title("SAÍDA MONTAGEM")
 
 # Definindo o diretório para salvar arquivos
-directory = r"C:\python-vsc"
+directory = r"Z:\bot_mtg"
 if not os.path.exists(directory):
+    os.makedirs(directory)
+
+directory_xml = r"Z:\bot_mtg\xml"
+if not os.path.exists(directory_xml):
     os.makedirs(directory)
 
 # Função para lidar com o submit ao pressionar Enter
@@ -105,7 +109,7 @@ def save_to_xml(selected_option, input_text):
     
     # Salvando o XML em um arquivo
     filename = f"{input_text}{datetime.now().strftime('_%H%M%S')}.xml"
-    tree.write(os.path.join(directory, filename), encoding="utf-8", xml_declaration=True)
+    tree.write(os.path.join(directory_xml, filename), encoding="utf-8", xml_declaration=True)
 
 # Função para salvar dados no arquivo de log diário
 def save_to_log(selected_option, input_text):
@@ -215,7 +219,7 @@ def job():
         send_email(summary_file_path)
 
 # Agendamento diário às 21:00
-schedule.every().day.at("14:35").do(job)
+schedule.every().day.at("22:00").do(job)
 
 def run_schedule():
     while True:
