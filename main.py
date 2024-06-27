@@ -69,7 +69,7 @@ def reset_counters():
 def check_reset_counters():
     global last_update_date
     current_date = datetime.now().strftime("%Y-%m-%d")
-    if current_date != last_update_date:
+    if (current_date != last_update_date):
         reset_counters()
 
 # Função para atualizar o widget de histórico
@@ -160,7 +160,28 @@ def handle_submit():
     # Salva os contadores no arquivo de persistência
     save_counters()
 
-def send_email(log_file_path):
+# Função para criar o arquivo de resumo diário
+def create_summary_file():
+    log_filename = f"log_{datetime.now().strftime('%Y-%m-%d')}.txt"
+    log_file_path = os.path.join(directory, log_filename)
+    summary_filename = f"resumo_{datetime.now().strftime('%Y-%m-%d')}.txt"
+    summary_file_path = os.path.join(directory, summary_filename)
+
+    if os.path.exists(log_file_path):
+        with open(log_file_path, "r") as log_file:
+            log_content = log_file.read()
+
+        with open(summary_file_path, "w") as summary_file:
+            summary_file.write(f"Resumo Diário - {datetime.now().strftime('%Y-%m-%d')}\n\n")
+            summary_file.write(log_content)
+            summary_file.write(f"\nTotal Maicon: {count_option1}\n")
+            summary_file.write(f"Total Guilherme: {count_option2}\n")
+            summary_file.write(f"Total: {total}\n")
+    
+    return summary_file_path
+
+# Função para enviar e-mails
+def send_email(summary_file_path):
     email_user = 'vcordova@embrapolsul.com.br'
     email_password = '996576298'
     email_send = 'jalmeida@embrapolsul.com.br'
@@ -172,10 +193,10 @@ def send_email(log_file_path):
     msg['To'] = email_send
     msg['Subject'] = subject
 
-    with open(log_file_path, 'r') as f:
-        log_content = f.read()
+    with open(summary_file_path, 'r') as f:
+        summary_content = f.read()
 
-    msg.attach(MIMEText(log_content, 'plain'))
+    msg.attach(MIMEText(summary_content, 'plain'))
 
     try:
         with smtplib.SMTP('smtp.gmail.com', 587) as server:
@@ -187,20 +208,19 @@ def send_email(log_file_path):
     except Exception as e:
         print(f"Falha ao enviar e-mail: {e}")
 
+# Função para o trabalho agendado
 def job():
-    log_filename = f"log_{datetime.now().strftime('%Y-%m-%d')}.txt"
-    log_file_path = os.path.join(directory, log_filename)
-    if os.path.exists(log_file_path):
-        send_email(log_file_path)
+    summary_file_path = create_summary_file()
+    if os.path.exists(summary_file_path):
+        send_email(summary_file_path)
 
 # Agendamento diário às 21:00
-schedule.every().day.at("21:00").do(job)
+schedule.every().day.at("13:56").do(job)
 
 def run_schedule():
     while True:
         schedule.run_pending()
         time.sleep(1)
-
 
 # Variável para armazenar a opção selecionada
 option_var = ctk.StringVar(value="Selecione um montador")
@@ -230,15 +250,20 @@ history_textbox = ctk.CTkTextbox(app, width=450, height=200, corner_radius=10)
 history_textbox.pack(pady=10)
 history_textbox.configure(state="disabled")
 
-# Carrega os contadores ao iniciar a aplicação
-load_counters()
-check_reset_counters()
-update_history_textbox()
+# Função principal da aplicação
+def main():
+    # Carrega os contadores ao iniciar a aplicação
+    load_counters()
+    check_reset_counters()
+    update_history_textbox()
 
-# Inicia a thread para o agendamento
-schedule_thread = threading.Thread(target=run_schedule)
-schedule_thread.daemon = True
-schedule_thread.start()
+    # Inicia a thread para o agendamento
+    schedule_thread = threading.Thread(target=run_schedule)
+    schedule_thread.daemon = True
+    schedule_thread.start()
 
-# Loop principal da aplicação
-app.mainloop()
+    # Loop principal da aplicação
+    app.mainloop()
+
+if __name__ == "__main__":
+    main()
