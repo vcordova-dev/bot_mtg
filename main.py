@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import xml.etree.ElementTree as ET
 from datetime import datetime
+import os
 
 # Configuração da aparência
 ctk.set_appearance_mode("dark")  # Modos: "system" (default), "dark", "light"
@@ -18,9 +19,42 @@ def on_enter(event):
 # Lista para armazenar os últimos 5 envios
 history = []
 
-# Contadores de entradas para cada opção
-count_option1 = 0
-count_option2 = 0
+# Função para carregar contadores do arquivo de persistência
+def load_counters():
+    global count_option1, count_option2, last_update_date
+    if os.path.exists("counters.txt"):
+        with open("counters.txt", "r") as file:
+            lines = file.readlines()
+            if len(lines) == 4:
+                last_update_date = lines[0].strip()
+                count_option1 = int(lines[1].strip())
+                count_option2 = int(lines[2].strip())
+            else:
+                reset_counters()
+    else:
+        reset_counters()
+
+# Função para salvar contadores no arquivo de persistência
+def save_counters():
+    with open("counters.txt", "w") as file:
+        file.write(f"{last_update_date}\n")
+        file.write(f"{count_option1}\n")
+        file.write(f"{count_option2}\n")
+        file.write(f"Total: {count_option1 + count_option2}\n")
+# Função para reiniciar os contadores
+def reset_counters():
+    global count_option1, count_option2, last_update_date
+    count_option1 = 0
+    count_option2 = 0
+    last_update_date = datetime.now().strftime("%Y-%m-%d")
+    save_counters()
+
+# Verifica se é necessário reiniciar os contadores
+def check_reset_counters():
+    global last_update_date
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    if current_date != last_update_date:
+        reset_counters()
 
 # Função para salvar dados em um arquivo XML
 def save_to_xml(selected_option, input_text):
@@ -83,12 +117,16 @@ def handle_submit():
         history_textbox.insert("end", entry + "\n")
     history_textbox.insert("end", f"Total Maicon: {count_option1}\n")
     history_textbox.insert("end", f"Total Guilherme: {count_option2}\n")
+    history_textbox.insert("end", f"Total dia: {count_option1 + count_option2}\n")
     history_textbox.configure(state="disabled")
     
     input_var.set("")  # Limpa o campo de entrada após o submit
 
     # Salva os dados em um arquivo XML
     save_to_xml(selected_option, input_text)
+
+    # Salva os contadores no arquivo de persistência
+    save_counters()
 
 # Variável para armazenar a opção selecionada
 option_var = ctk.StringVar(value="Selecione um montador")
@@ -117,6 +155,10 @@ submit_button.pack(pady=10)
 history_textbox = ctk.CTkTextbox(app, width=450, height=200, corner_radius=10)
 history_textbox.pack(pady=10)
 history_textbox.configure(state="disabled")
+
+# Carrega os contadores ao iniciar a aplicação
+load_counters()
+check_reset_counters()
 
 # Loop principal da aplicação
 app.mainloop()
