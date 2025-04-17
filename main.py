@@ -8,6 +8,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import threading
 import time
+import matplotlib.pyplot as plt
+
 
 # Configuração da aparência
 ctk.set_appearance_mode("dark")  # Modos: "system" (default), "dark", "light"
@@ -164,6 +166,12 @@ def handle_submit():
     # Salva os contadores no arquivo de persistência
     save_counters()
 
+# Função para zerar contadores manualmente
+def zerar_contadores():
+    reset_counters()
+    update_history_textbox()
+    error_label.configure(text="Contadores zerados com sucesso!", text_color="green")
+
 # Função para criar o arquivo de resumo diário
 def create_summary_file():
     log_filename = f"log_{datetime.now().strftime('%Y-%m-%d')}.txt"
@@ -219,12 +227,26 @@ def job():
         send_email(summary_file_path)
 
 # Agendamento diário às 21:00
-schedule.every().day.at("22:00").do(job)
+schedule.every().day.at("18:13").do(job)
 
 def run_schedule():
     while True:
         schedule.run_pending()
         time.sleep(1)
+
+# Função para mostrar gráfico de pedidos por montador
+def mostrar_grafico():
+    nomes = ['Maicon', 'Guilherme']
+    valores = [count_option1, count_option2]
+
+    plt.figure(figsize=(6, 4))
+    plt.bar(nomes, valores, color=['skyblue', 'lightgreen'])
+    plt.title('Pedidos por Montador')
+    plt.ylabel('Quantidade')
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    plt.show()
+
 
 # Variável para armazenar a opção selecionada
 option_var = ctk.StringVar(value="Selecione um montador")
@@ -253,6 +275,16 @@ submit_button.pack(pady=10)
 history_textbox = ctk.CTkTextbox(app, width=450, height=200, corner_radius=10)
 history_textbox.pack(pady=10)
 history_textbox.configure(state="disabled")
+history_textbox.pack(pady=10)
+
+grafico_button = ctk.CTkButton(app, text="Ver Gráfico", command=mostrar_grafico, width=120, height=35, corner_radius=10)
+grafico_button.pack(pady=5)
+
+reset_button = ctk.CTkButton(app, text="Zerar Contadores", command=zerar_contadores, width=140, height=35, corner_radius=10, fg_color="red", hover_color="#cc0000")
+reset_button.pack(pady=5)
+
+
+
 
 # Função principal da aplicação
 def main():
